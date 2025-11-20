@@ -10,6 +10,8 @@ Modul de achiziție:
 Perioada / condițiile colectării:
 Date simulate pentru operațiuni zilnice ale unei flote urbane de curierat (condiții „stop-and-go”, cicluri termice repetate, frânări frecvente).
 
+
+
 ### 2.2 Caracteristicile dataset-ului
 
 Număr total de observații: ~25.000–40.000 în funcție de senzor (estimare realistă pentru simulare; poate fi adaptat după fișierele reale CSV)
@@ -24,6 +26,8 @@ Tipuri de date:
 
 Format fișiere:
 ☑ CSV / ☐ TXT / ☐ JSON / ☐ PNG / ☐ Altele
+
+
 
 ### 2.3 Descrierea fiecărei caracteristici
 
@@ -45,6 +49,8 @@ Format fișiere:
 | oil_level      | numeric | %       | Nivel ulei motor    | 0–100   |
 | coolant_level  | numeric | %       | Nivel lichid răcire | 0–100   |
 | brake_fluid    | numeric | %       | Nivel lichid frână  | 0–100   |
+
+
 
 
 ##  3. Analiza Exploratorie a Datelor (EDA) – Sintetic
@@ -69,6 +75,8 @@ Vibrațiile axelor X/Y/Z au distribuție multimodală datorită treptelor de vit
 
 Nivelurile fluidelor scad treptat în timp → comportament tipic de serie de timp.
 
+
+
 ### 3.2 Analiza calității datelor
 
 Lipsă date:
@@ -83,6 +91,8 @@ Corelații puternice:
 – vib_x, vib_y, vib_z (r > 0.85)
 – brake_temp și brake_wear (creștere uzură ⇒ temperaturi mai mari)
 
+
+
 ### 3.3 Probleme identificate
 
 Feature brake_temp prezintă 3–5% valori lipsă → necesită imputare.
@@ -92,6 +102,7 @@ Vibrațiile brute au outlieri mari → trebuie limitare percentile.
 Clasele pentru RUL frâne pot fi dezechilibrate (uzură lentă vs uzură rapidă).
 
 Diferențe mari între vehicule → standardizare obligatorie.
+
 
 
 ##  4. Preprocesarea Datelor
