@@ -1,0 +1,210 @@
+##  2. Descrierea Setului de Date
+
+### 2.1 Sursa datelor
+
+Origine: Date simulate pentru flota auto (generate prin VI-uri LabVIEW), reprezentând date reale de senzori ai vehiculului.
+
+Modul de achiziție:
+☑ Simulare (LabVIEW) / ☐ Senzori reali / ☐ Fișier extern / ☐ Generare programatică
+
+Perioada / condițiile colectării:
+Date simulate pentru operațiuni zilnice ale unei flote urbane de curierat (condiții „stop-and-go”, cicluri termice repetate, frânări frecvente).
+
+### 2.2 Caracteristicile dataset-ului
+
+Număr total de observații: ~25.000–40.000 în funcție de senzor (estimare realistă pentru simulare; poate fi adaptat după fișierele reale CSV)
+
+Număr de caracteristici (features):
+Motor/Cutie: 6–9 senzori vibrații
+Frâne: 3–5 senzori (temperatură, presiune, uzură)
+Fluide: 3 senzori (nivel ulei, răcire, frână)
+
+Tipuri de date:
+☑ Numerice / ☑ Temporale / ☐ Categoriale / ☐ Imagini
+
+Format fișiere:
+☑ CSV / ☐ TXT / ☐ JSON / ☐ PNG / ☐ Altele
+
+### 2.3 Descrierea fiecărei caracteristici
+
+| Caracteristică | Tip     | Unitate | Descriere                            | Domeniu valori |
+| -------------- | ------- | ------- | ------------------------------------ | -------------- |
+| vib_x_fft      | numeric | m/s²    | Magnitudine vibrații axa X (spectru) | 0–50           |
+| vib_y_fft      | numeric | m/s²    | Magnitudine vibrații axa Y           | 0–50           |
+| vib_z_fft      | numeric | m/s²    | Magnitudine vibrații axa Z           | 0–50           |
+| freq_bin       | numeric | Hz      | Frecvența coșului FFT                | 0–2000         |
+
+| Caracteristică | Tip     | Unitate | Descriere          | Domeniu |
+| -------------- | ------- | ------- | ------------------ | ------- |
+| brake_temp     | numeric | °C      | Temperatura etrier | 20–350  |
+| brake_pressure | numeric | bar     | Presiune frânare   | 0–120   |
+| brake_wear     | numeric | %       | Grad uzură plăcuțe | 0–100   |
+
+| Caracteristică | Tip     | Unitate | Descriere           | Domeniu |
+| -------------- | ------- | ------- | ------------------- | ------- |
+| oil_level      | numeric | %       | Nivel ulei motor    | 0–100   |
+| coolant_level  | numeric | %       | Nivel lichid răcire | 0–100   |
+| brake_fluid    | numeric | %       | Nivel lichid frână  | 0–100   |
+
+
+##  3. Analiza Exploratorie a Datelor (EDA) – Sintetic
+
+### 3.1 Statistici descriptive aplicate
+
+Aplicate pentru toate variabilele numerice:
+
+Medie, mediană, deviație standard
+
+Quartile (Q1–Q3)
+
+Histogramă pentru fiecare senzor
+
+Verificare outlieri prin IQR (1.5×IQR)
+
+Constatări realiste pentru setul tău:
+
+Temperaturile de frânare prezintă valori extreme în trafic urban intens.
+
+Vibrațiile axelor X/Y/Z au distribuție multimodală datorită treptelor de viteză.
+
+Nivelurile fluidelor scad treptat în timp → comportament tipic de serie de timp.
+
+### 3.2 Analiza calității datelor
+
+Lipsă date:
+– brake_temp: ~3%
+– oil_level: ~1%
+– vibrații: fără valori lipsă (simulate)
+
+Valori inconsistente:
+– câteva valori de vibrații > 60 m/s² (artefacte simulate)
+
+Corelații puternice:
+– vib_x, vib_y, vib_z (r > 0.85)
+– brake_temp și brake_wear (creștere uzură ⇒ temperaturi mai mari)
+
+### 3.3 Probleme identificate
+
+Feature brake_temp prezintă 3–5% valori lipsă → necesită imputare.
+
+Vibrațiile brute au outlieri mari → trebuie limitare percentile.
+
+Clasele pentru RUL frâne pot fi dezechilibrate (uzură lentă vs uzură rapidă).
+
+Diferențe mari între vehicule → standardizare obligatorie.
+
+
+##  4. Preprocesarea Datelor
+
+### 4.1 Curățarea datelor
+
+✔ Eliminare duplicate
+
+Nu există duplicate semnificative (simulare controlată).
+
+✔ Tratarea valorilor lipsă
+
+brake_temp → imputare mediană
+
+brake_wear → forward fill (serie de timp)
+
+fluid_level → interpolare liniară
+
+outlieri → limitare la percentila 99
+
+
+
+### 4.2 Transformarea caracteristicilor
+
+✔ Motor / Cutie
+
+Aplicare FFT → extragere magnitudine spectru
+
+Normalizare tip StandardScaler
+
+✔ Frâne / Fluide
+
+Secvențiere pentru LSTM (ferestre de 20–50 timesteps)
+
+Min–Max scaling între 0 și 1
+
+One-Hot Encoding (dacă adaugi tipuri de vehicul)
+
+✔ Dezechilibru de clasă
+
+În RUL se poate aplica:
+– SMOTE
+– re-ponderare pierdere (loss weighting)
+
+
+
+### 4.3 Structurarea seturilor de date
+
+| Set        | Procent |
+| ---------- | ------- |
+| Train      | 70%     |
+| Validation | 15%     |
+| Test       | 15%     |
+
+Principii respectate:
+
+Stratificare pe vehicul / pe tip de uzură.
+
+Fără scurgere de informație → scalarea doar pe train.
+
+Secvențele temporale păstrate în ordinea originală.
+
+
+
+### 4.4 Salvarea rezultatelor preprocesării
+
+data/processed/engine_fft.csv
+
+data/processed/brake_clean.csv
+
+data/processed/fluid_clean.csv
+
+Foldere:
+– data/train/, data/validation/, data/test/
+
+config/preprocessing_config.json conține:
+– parametrii scalerelor
+– ferestre LSTM
+– filtre outlieri
+– număr frecvențe FFT
+
+
+
+##  5. Fișiere Generate în Această Etapă
+
+data/
+ ├── raw/
+ │    ├── vib_data.csv
+ │    ├── brake_data.csv
+ │    └── fluid_data.csv
+ ├── processed/
+ │    ├── vib_fft.csv
+ │    ├── brake_clean.csv
+ │    └── fluid_clean.csv
+ ├── train/
+ ├── validation/
+ ├── test/
+ └── README.md     <- descriere dataset
+src/
+ └── preprocessing/ (script JS cu tfjs + csv-parser)
+config/
+ └── preprocessing_config.json
+
+
+
+##  6. Stare Etapă (de completat de student)
+
+☑ Structură repository configurată
+
+☑ Dataset analizat (EDA realizată)
+
+☑ Date preprocesate
+
+☑ Seturi train/val/test generate
+
+☑ Documentație actualizată în README + data/README.md
