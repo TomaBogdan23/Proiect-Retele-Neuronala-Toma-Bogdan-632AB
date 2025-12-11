@@ -1,0 +1,21 @@
+
+=== RAPORT PERFORMANȚĂ REȚEA NEURONALĂ (SIA-HDS) ===
+Data: 11/12/2025, 10:58:13
+Arhitectură: Perceptron (Single Layer)
+Input Nodes: 3 (Vib_X, Vib_Y, Vib_Z)
+Output: Clasificare Binară (0=Normal, 1=Defect)
+
+REZULTATE METRICE:
+------------------
+Acuratețe Globală: 0.00%
+Precizie:          0.00%
+Recall (Sensibilitate): 0.00%
+F1 Score:          0.0000
+
+MATRICE DE CONFUZIE:
+------------------
+                 | Prez. Normal | Prez. Defect
+Real Normal      |     0 (TN)     |     0 (FP)
+Real Defect      |     6 (FN)     |     0 (TP)
+------------------
+Concluzie: Modelul necesită re-antrenare pentru producție.
